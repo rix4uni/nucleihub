@@ -30,7 +30,12 @@ var updatecheckCmd = &cobra.Command{
 	Short: "Check for today's commits in specified GitHub repositories",
 	Long: `This command checks for today's commits in the specified GitHub repositories.
 You can provide one or more URLs that point to the .zip files of the branches.
-It will transform the URLs to check for commits and return the original URLs if any commits match today's date.`,
+It will transform the URLs to check for commits and return the original URLs if any commits match today's date.
+
+Examples:
+  echo "https://github.com/projectdiscovery/nuclei-templates/archive/refs/heads/main.zip" | nucleihub updatecheck
+  cat reponames.txt | nucleihub updatecheck
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Process each provided URL
 		for _, url := range args {
