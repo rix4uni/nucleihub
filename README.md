@@ -19,9 +19,9 @@ go install github.com/rix4uni/nucleihub@latest
 
 ## Download prebuilt binaries
 ```
-wget https://github.com/rix4uni/nucleihub/releases/download/v0.0.1/nucleihub-linux-amd64-0.0.1.tgz
-tar -xvzf nucleihub-linux-amd64-0.0.1.tgz
-rm -rf nucleihub-linux-amd64-0.0.1.tgz
+wget https://github.com/rix4uni/nucleihub/releases/download/v0.0.2/nucleihub-linux-amd64-0.0.2.tgz
+tar -xvzf nucleihub-linux-amd64-0.0.2.tgz
+rm -rf nucleihub-linux-amd64-0.0.2.tgz
 mv nucleihub ~/go/bin/nucleihub
 ```
 Or download [binary release](https://github.com/rix4uni/nucleihub/releases) for your platform.
@@ -42,7 +42,7 @@ nucleihub -h
  / / / // /_/ // /__ / //  __// // / / // /_/ // /_/ /
 /_/ /_/ \__,_/ \___//_/ \___//_//_/ /_/ \__,_//_.___/
 
-                            Current nucleihub version v0.0.1
+                            Current nucleihub version v0.0.2
 
 Community edition nuclei templates, a simple tool that allows you
 to organize all the Nuclei templates offered by the community in one place.
@@ -63,6 +63,7 @@ Available Commands:
   download    Clone or download repositories and files with various options
   duplicate   Find and save unique or large content templates from downloaded files
   help        Help about any command
+  updatecheck Check for today's commits in specified GitHub repositories
 
 Flags:
   -h, --help      help for nucleihub
