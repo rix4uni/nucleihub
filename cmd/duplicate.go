@@ -7,6 +7,7 @@ import (
     "path/filepath"
     "regexp"
     "strings"
+    "os/exec"
 
     "github.com/spf13/cobra"
 )
@@ -25,11 +26,12 @@ Examples:
         inputDir, _ := cmd.Flags().GetString("input-directory")
         outputDir, _ := cmd.Flags().GetString("output-directory")
         largeContentFlag, _ := cmd.Flags().GetBool("large-content")
+        noValidateFlag, _ := cmd.Flags().GetBool("no-validate")
 
         inputDir = expandHomePath(inputDir)
         outputDir = expandHomePath(outputDir)
 
-        processTemplates(inputDir, outputDir, largeContentFlag)
+        processTemplates(inputDir, outputDir, largeContentFlag, noValidateFlag)
     },
 }
 
@@ -52,7 +54,7 @@ func expandHomePath(path string) string {
     return path
 }
 
-func processTemplates(inputDir, outputDir string, largeContentFlag bool) {
+func processTemplates(inputDir, outputDir string, largeContentFlag, noValidateFlag bool) {
     os.MkdirAll(outputDir, os.ModePerm)
 
     files := make(map[string][]string) // map of base filename to file paths
@@ -64,8 +66,14 @@ func processTemplates(inputDir, outputDir string, largeContentFlag bool) {
         if err != nil {
             return err
         }
-        if !info.IsDir() {
+        if !info.IsDir() && strings.HasSuffix(info.Name(), ".yaml") { // Only process .yaml files
             filename := info.Name()
+
+            // If filename starts with "cve-" (case-insensitive), convert it to "CVE-"
+            if strings.HasPrefix(strings.ToLower(filename), "cve-") {
+                filename = "CVE-" + filename[4:]
+            }
+
             baseFilename := filename
 
             if matches := re.FindStringSubmatch(filename); matches != nil {
@@ -86,36 +94,36 @@ func processTemplates(inputDir, outputDir string, largeContentFlag bool) {
         if len(paths) > 1 {
             // Handle duplicates based on flag
             if largeContentFlag {
-                handleLargeContent(paths, baseFilename, outputDir)
+                handleLargeContent(paths, baseFilename, outputDir, noValidateFlag)
             } else {
-                handleDefault(paths, baseFilename, outputDir)
+                handleDefault(paths, baseFilename, outputDir, noValidateFlag)
             }
         } else {
             // Copy unique file directly
-            saveFile(paths[0], filepath.Join(outputDir, baseFilename))
+            saveFile(paths[0], filepath.Join(outputDir, baseFilename), noValidateFlag)
         }
     }
 
     fmt.Println("Templates processed successfully.")
 }
 
-func handleDefault(paths []string, baseFilename, outputDir string) {
+func handleDefault(paths []string, baseFilename, outputDir string, noValidateFlag bool) {
     var savedFile bool
 
     for i, path := range paths {
         if !savedFile {
             // Save the first file with the base filename
-            saveFile(path, filepath.Join(outputDir, baseFilename))
+            saveFile(path, filepath.Join(outputDir, baseFilename), noValidateFlag)
             savedFile = true
         } else {
             // Save duplicates with a suffix
             outputFile := filepath.Join(outputDir, fmt.Sprintf("%s_%d.yaml", strings.TrimSuffix(baseFilename, ".yaml"), i))
-            saveFile(path, outputFile)
+            saveFile(path, outputFile, noValidateFlag)
         }
     }
 }
 
-func handleLargeContent(paths []string, baseFilename, outputDir string) {
+func handleLargeContent(paths []string, baseFilename, outputDir string, noValidateFlag bool) {
     var largestFile string
     var largestSize int64 = -1
 
@@ -133,11 +141,23 @@ func handleLargeContent(paths []string, baseFilename, outputDir string) {
     }
 
     if largestFile != "" {
-        saveFile(largestFile, filepath.Join(outputDir, baseFilename))
+        saveFile(largestFile, filepath.Join(outputDir, baseFilename), noValidateFlag)
     }
 }
 
-func saveFile(src, dst string) {
+func saveFile(src, dst string, noValidateFlag bool) {
+    // Skip the Nuclei validation if the flag is used
+    if !noValidateFlag {
+        cmd := exec.Command("nuclei", "-duc", "-silent", "-validate", "-t", src)
+        err := cmd.Run()
+
+        if err != nil {
+            fmt.Printf("Invalid template skipped: %s\n", src)
+            return
+        }
+    }
+
+    // Read and save the validated file
     content, err := ioutil.ReadFile(src)
     if err != nil {
         fmt.Println("Error reading file:", err)
@@ -157,4 +177,5 @@ func init() {
     duplicateCmd.Flags().String("input-directory", "~/nucleihub-downloaded-repos", "Directory to scan for templates")
     duplicateCmd.Flags().String("output-directory", "~/nucleihub-templates", "Directory to save processed templates")
     duplicateCmd.Flags().Bool("large-content", false, "Only save the largest file content if duplicates are found")
+    duplicateCmd.Flags().Bool("no-validate", false, "Skip the nuclei validation for templates")
 }
