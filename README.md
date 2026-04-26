@@ -4,13 +4,20 @@
 </h1>
 <h4 align="center">A simple tool that allows you to organize all the Nuclei templates offered by the community in one place, Inspired by https://github.com/xm1k3/cent.</h4>
 
-### nucleihub supports all of these url types, in the end must contain `.git, .yaml, .zip`
+### nucleihub supports all of these url types (must end with `.git`, `.yaml`, or `.zip`)
 ```
 https://github.com/rix4uni/nucleihub.git
 https://gist.githubusercontent.com/0x240x23elu/a450c1829de9bb4559ea0243bcc70714/raw/edcb9e91b6c1b1fa842b14e391c20bb1e2ef4c81/CVE-2023-26255.yaml
 https://github.com/projectdiscovery/nuclei-templates/archive/refs/heads/main.zip
 https://raw.githubusercontent.com/boobooHQ/private_templates/refs/heads/main/springboot_heapdump.yaml
 ```
+
+### Features
+- **Auto-flatten**: Moves all `.yaml` files from subdirectories to the root output directory
+- **Duplicate handling**: When duplicate filenames exist, keeps the larger file
+- **Smart filtering**: Automatically removes hash-suffixed (e.g., `file-d41d8cd98f00b204e9800998ecf8427e.yaml`) and numeric-suffixed (e.g., `file-23.yaml`) duplicates
+- **Nuclei validation**: Validates all templates after download (skippable with `--no-validate`)
+- **Low resource usage**: Optimized for 1GB VPS environments with buffered I/O and controlled concurrency
 
 ## Installation
 ```
@@ -19,9 +26,9 @@ go install github.com/rix4uni/nucleihub@latest
 
 ## Download prebuilt binaries
 ```
-wget https://github.com/rix4uni/nucleihub/releases/download/v0.0.3/nucleihub-linux-amd64-0.0.3.tgz
-tar -xvzf nucleihub-linux-amd64-0.0.3.tgz
-rm -rf nucleihub-linux-amd64-0.0.3.tgz
+wget https://github.com/rix4uni/nucleihub/releases/download/v0.0.4/nucleihub-linux-amd64-0.0.4.tgz
+tar -xvzf nucleihub-linux-amd64-0.0.4.tgz
+rm -rf nucleihub-linux-amd64-0.0.4.tgz
 mv nucleihub ~/go/bin/nucleihub
 ```
 Or download [binary release](https://github.com/rix4uni/nucleihub/releases) for your platform.
@@ -33,42 +40,33 @@ cd nucleihub; go install
 ```
 
 ## Usage
+
 ```console
-nucleihub -h
+Usage of nucleihub:
+  -o, --output-directory string   Directory to download into (default "~/nucleihub-templates")
+  -p, --parallel int              Number of operations to perform in parallel (default 10)
+      --no-validate               Skip post-download nuclei validation
+      --silent                    Silent mode (no banner)
+      --version                   Print version and exit
+```
 
-                        __       _  __            __
-   ____   __  __ _____ / /___   (_)/ /_   __  __ / /_
-  / __ \ / / / // ___// // _ \ / // __ \ / / / // __ \
- / / / // /_/ // /__ / //  __// // / / // /_/ // /_/ /
-/_/ /_/ \__,_/ \___//_/ \___//_//_/ /_/ \__,_//_.___/
+### Usage Examples
+**Basic download (read URLs from stdin):**
+```console
+cat reponames.txt | nucleihub
+```
 
-                            Current nucleihub version v0.0.3
+**Specify custom output directory:**
+```console
+cat reponames.txt | nucleihub -o ~/my-templates
+```
 
-Community edition nuclei templates, a simple tool that allows you
-to organize all the Nuclei templates offered by the community in one place.
+**Reduce parallel operations for low-resource VPS:**
+```console
+cat reponames.txt | nucleihub -p 5
+```
 
-Examples:
-  # Step 1, download
-  cat reponames.txt | nucleihub download --output-directory ~/nucleihub-downloaded-repos
-
-  # Step 2, remove duplicates
-  nucleihub duplicate --input-directory ~/nucleihub-downloaded-repos --output-directory ~/nucleihub-templates --large-content
-
-Usage:
-  nucleihub [flags]
-  nucleihub [command]
-
-Available Commands:
-  completion  Generate the autocompletion script for the specified shell
-  download    Clone or download repositories and files with various options
-  duplicate   Find and save unique or large content templates from downloaded files
-  help        Help about any command
-  updatecheck Check for today's commits in specified GitHub repositories
-
-Flags:
-  -h, --help      help for nucleihub
-  -u, --update    update nucleihub to latest version
-  -v, --version   Print the version of the tool and exit.
-
-Use "nucleihub [command] --help" for more information about a command.
+**Skip nuclei validation (faster):**
+```console
+cat reponames.txt | nucleihub --no-validate
 ```
