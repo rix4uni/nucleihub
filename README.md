@@ -4,8 +4,11 @@
 </h1>
 <h4 align="center">A simple tool that allows you to organize all the Nuclei templates offered by the community in one place, Inspired by https://github.com/xm1k3/cent.</h4>
 
+<img width="1690" height="992" alt="image" src="https://github.com/user-attachments/assets/dbfc26b9-16cd-4ea6-ab9b-1bc09c761e48" />
+
+
 ### nucleihub supports all of these url types (must end with `.git`, `.yaml`, or `.zip`)
-```
+```console
 https://github.com/rix4uni/nucleihub.git
 https://gist.githubusercontent.com/0x240x23elu/a450c1829de9bb4559ea0243bcc70714/raw/edcb9e91b6c1b1fa842b14e391c20bb1e2ef4c81/CVE-2023-26255.yaml
 https://github.com/projectdiscovery/nuclei-templates/archive/refs/heads/main.zip
